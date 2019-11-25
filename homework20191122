@@ -1,0 +1,84 @@
+const http = require('http');
+const hostname = '127.0.0.1';
+const port = 8008;
+const coursesUrl = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=3&fbclid=IwAR1QanjXaPkLLw9nQMXDiESZnQKm8stmGs1crDDKekIv7prkuwoH3R0hzjs';
+            
+//let buffer = '';
+//let statusCode = 404;
+
+const servak = http.createServer((req,res) =>{
+//console.log(req);
+res.setHeader('Content-Type','text/plain');
+
+switch(req.url){
+    case '/': 
+      buffer = 'Hello, hell\n'; 
+      res.statusCode = 200; 
+      res.write(buffer);
+      res.end();
+      break;
+    case '/contact': //buffer = readFile('index.html'); 
+    //console.log('buffer=' + buffer);
+      const fs = require('fs');
+      let fileName = 'index.html';
+      fs.access(fileName, fs.constants.F_OK | fs.constants.R_OK, (err) => {
+        if(err){
+            res.write(`Could not read file ${fileName}`);
+            res.statusCode = 200; 
+            res.end();
+        }
+        else{
+            readStream = fs.createReadStream(fileName);
+            readStream.on('open', () => {
+                res.setHeader('Content-Type','text/html');
+                readStream.pipe(res);
+                //result=chunk.toString();
+                //console.log('res=' + result.toString());
+                //console.log(`read all data from file ${fileName}`);
+            });
+    
+        };
+      });
+      //res.statusCode = 200; 
+      //res.end(); 
+      break;
+    case '/courses':
+        const https = require('https');
+        
+        https.get(coursesUrl, (resp) => {
+             
+        let data = '';
+
+          // A chunk of data has been recieved.
+          resp.on('data', (chunk) => {
+            data += chunk;
+          });
+
+          // The whole response has been received. Print out the result.
+          resp.on('end', () => {
+            console.log(JSON.parse(data));
+            res.setHeader('Content-Type','text/plain');
+            res.write(data);
+            res.statusCode = 200; 
+            res.end();
+          });
+          //console.dir(resp); 
+
+        }).on("error", (err) => {
+          console.log("Error: " + err.message);
+          });
+        break;
+    default: buffer = '404 not found\n'; res.statusCode = 404;res.write(buffer);res.end();
+}
+
+//res.statusCode = statusCode;
+//res.write(buffer);
+//res.end();
+
+});
+
+servak.listen(port,hostname,() => {
+    console.log(`Servak are listenning at http://${hostname}:${port}`);
+});
+
+
