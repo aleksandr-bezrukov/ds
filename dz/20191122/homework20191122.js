@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const hostname = '127.0.0.1';
 const port = 8008;
 const coursesUrl = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=3&fbclid=IwAR1QanjXaPkLLw9nQMXDiESZnQKm8stmGs1crDDKekIv7prkuwoH3R0hzjs';
@@ -13,9 +14,60 @@ function sendResponse(msg){
   res.end();
 }
 
+function sendEmail(msg)
+{
+  const nodemailer = require('nodemailer');
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'bezrukov.aleksandr.victorovich@gmail.com',
+      pass: 'Ns<kznm1!'
+    }
+  });
+
+  let mailOptions = {
+    from: 'bezrukov.aleksandr.victorovich@gmail.com'
+    ,to: 'aleksandr.bezrukov@privatbank.ua'
+    ,subject: 'currency'
+    ,text: 'nihao'
+  }
+
+  mailOptions['text'] = msg;
+
+  transporter.sendMail(mailOptions,function(error,info){
+    if(error){console.log(error);}
+    else{console.log('Email sent: ' + info.response);}
+  })
+
+  
+}
+
 switch(req.url){
     case '/':
       sendResponse('Hello, hello');
+      break;
+    
+      case '/mailme':
+        
+
+        https.get(coursesUrl, (resp) => {
+  
+          let data = '';
+  
+            resp.on('data', (chunk) => {
+              data += chunk;
+            });
+  
+            resp.on('end', () => {
+              console.log(JSON.parse(data));
+              sendEmail(data);
+            });
+  
+        }).on("error", (err) => {
+            console.log("Error: " + err.message);
+           });
+
       break;
 
     case '/contact':
@@ -43,7 +95,7 @@ switch(req.url){
       break;
 
     case '/courses':
-        const https = require('https');
+        
 
         https.get(coursesUrl, (resp) => {
 
